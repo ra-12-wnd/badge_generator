@@ -54,9 +54,12 @@ pip install -r requirements.txt
 ```
 ---
 
-## Usage
-python main.py
+## 🚀 Usage
 
+Run the application with:
+```bash
+python main.py
+```
 ---
 
 ## 📸 Preview
