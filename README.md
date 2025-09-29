@@ -51,8 +51,8 @@ source .venv/bin/activate
 
 # 3) Install dependencies
 pip install -r requirements.txt
-
-----
+```
+---
 
 ## Usage
 python main.py
