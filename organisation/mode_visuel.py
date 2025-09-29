@@ -8,33 +8,23 @@ class ModeVisuelWindow:
     
     def __init__(self, master, config):
         self.config = config
-        self.frame = tk.Frame(master, bg="#d3d3d3")  # C'est maintenant un panneau
+        self.frame = tk.Frame(master, bg="#d3d3d3")  # This is now a panel
 
         self.badge_image = None
         self.polices = ["Arial", "Helvetica", "Times", "Courier", "Calibri"]
         self.style_states = []
         self.couleur_labels = []
         self.trait_entries = []
-
         self.section_dimensions()
         self.section_polices()
-        
-
-
         self.section_logo_traits()
-        
-
-
-
     def section_dimensions(self):
         section = SectionPliable(self.frame, "Dimensions du Badge                                                                         ")
         section.pack(fill="x", pady=5, padx=10)
-
         tk.Label(section.content, text="Largeur (mm):", bg="#d3d3d3").grid(row=0, column=0, sticky="w", pady=3)
         self.largeur_entry = tk.Entry(section.content, width=10)
         self.largeur_entry.insert(0, str(self.config["dimensions"]["badge_width_mm"]))
         self.largeur_entry.grid(row=0, column=1, padx=5)
-
         tk.Label(section.content, text="Hauteur (mm):", bg="#d3d3d3").grid(row=1, column=0, sticky="w", pady=3)
         self.hauteur_entry = tk.Entry(section.content, width=10)
         self.hauteur_entry.insert(0, str(self.config["dimensions"]["badge_height_mm"]))
@@ -43,18 +33,16 @@ class ModeVisuelWindow:
     def section_polices(self):
         section = SectionPliable(self.frame, "Polices                                                              ")
         section.pack(fill="x", pady=5, padx=10)
-
-        # Titres des colonnes
+        # Column headers
         tk.Label(section.content, text="", bg="#d3d3d3").grid(row=0, column=0)
         tk.Label(section.content, text="Type", bg="#d3d3d3", font=("Arial", 9)).grid(row=0, column=1)
         tk.Label(section.content, text="Taille", bg="#d3d3d3", font=("Arial", 9)).grid(row=0, column=2)
         tk.Label(section.content, text="Style", bg="#d3d3d3", font=("Arial", 9)).grid(row=0, column=3, columnspan=3)
         tk.Label(section.content, text="Couleur", bg="#d3d3d3", font=("Arial", 9)).grid(row=0, column=6)
-
         self.type_widgets, self.size_widgets, self.style_buttons = [], [], []
 
         for i in range(4):
-            row_index = i + 1  # Décalage pour ne pas écraser les titres
+            row_index = i + 1  # Shift down to avoid overwriting headers
 
             font_name, font_size, style_dict, font_color = self.config["polices"][i]
 
@@ -94,11 +82,11 @@ class ModeVisuelWindow:
 
         tk.Label(section.content, text="Logo :", bg="#d3d3d3").grid(row=0, column=0, sticky="e")
 
-        # 🔧 Créer le champ AVANT de l’utiliser
+        # Create the input field BEFORE using it
         self.logo_entry = tk.Entry(section.content, width=50)
         self.logo_entry.grid(row=0, column=1, padx=5, sticky="w")
 
-        # Remplir selon la config
+        # Fill according to the config
         logo_path = self.config.get("logo_path", "")
         self.default_logo_path = self.config.get("logo_path", "")  # Assurez-vous que ceci soit défini avant si utilisé ailleurs
 
@@ -130,7 +118,7 @@ class ModeVisuelWindow:
             
     def section_boutons_globaux(self):
         button_frame = tk.Frame(self.frame, bg="#d3d3d3")
-        button_frame.pack(pady=15)   # Plus de marge
+        button_frame.pack(pady=15)   # More spacing
     def wrap_text_pil(self, draw, text, font, max_width):
         words = text.split()
         lines = []
@@ -151,18 +139,16 @@ class ModeVisuelWindow:
 
         return lines
 
-
-
     def recharger_interface(self):
         """Recharge les champs avec les valeurs actuelles du config."""
-        # Largeur / hauteur badge
+        # Width/ Height badge
         self.largeur_entry.delete(0, tk.END)
         self.largeur_entry.insert(0, str(self.config["dimensions"]["badge_width_mm"]))
 
         self.hauteur_entry.delete(0, tk.END)
         self.hauteur_entry.insert(0, str(self.config["dimensions"]["badge_height_mm"]))
 
-        # Polices (4 lignes)
+        # Polices (4 rows)
         for i in range(4):
             font_name, font_size, style_dict, font_color = self.config["polices"][i]
 
@@ -178,7 +164,7 @@ class ModeVisuelWindow:
             ]
 
             for j in range(3):
-                self.update_style_button(i, j)  # 👈 THIS is what makes buttons visually update
+                self.update_style_button(i, j)  # THIS is what makes buttons visually update
 
 
         # Logo
@@ -188,7 +174,7 @@ class ModeVisuelWindow:
         else:
             self.logo_entry.insert(0, self.config.get("logo_path", ""))
 
-        # Traits
+        # lines
         for i in range(2):
             largeur, couleur = self.config["traits"][i]
             self.trait_entries[i][0].delete(0, tk.END)
@@ -223,14 +209,13 @@ class ModeVisuelWindow:
             couleur = self.trait_entries[i][1].cget("bg")
             self.config["traits"][i] = (largeur, couleur)
 
-        #self.config["logo_path"] = self.logo_entry.get()
         saisi = self.logo_entry.get()
         if saisi.strip().lower() == "logo par défaut":
             self.config["logo_path"] = self.default_logo_path
         else:
             self.config["logo_path"] = saisi
 
-        # === Création de l'aperçu complet ===
+        # === Generate full badge preview ===
         dims = self.config["dimensions"]
         interne = self.config["elements_internes"]
 
@@ -256,20 +241,20 @@ class ModeVisuelWindow:
         else:
             y_text = h // 2
 
-        # Textes d'exemple
+        # Example text lines
         lignes_exemple = ["Nissrine RAOUANE", "Ingénieur en Génie Industriel et Transition Numérique", "nissrineraw@gmail.com", "XXX"]
-        #y_text = h // 2
+        
 
         for idx, texte in enumerate(lignes_exemple):
             police_name, taille, style_dict, couleur = self.config["polices"][idx]
 
-            # Appliquer police avec styles
+            # Select base font family
             font_base = "arial"
             if police_name.lower() == "times":
                 font_base = "times"
             elif police_name.lower() == "courier":
                 font_base = "cour"
-
+            # Add style suffix
             suffix = ""
             if style_dict.get("bold") and style_dict.get("italic"):
                 suffix = "bi"
@@ -285,7 +270,7 @@ class ModeVisuelWindow:
             except:
                 font = ImageFont.load_default()
 
-            # Découper le texte en lignes (wrap)
+            # Wrap text if it exceeds max width
             wrapped_lines = self.wrap_text_pil(draw, texte, font, w * 0.9)
 
             for line in wrapped_lines:
@@ -301,25 +286,24 @@ class ModeVisuelWindow:
                         width=1
                     )
                 
-                y_text += taille + 5.5  # espacement régulier
+                y_text += taille + 5.5  # Spacing between lines
             # Décalage pour la ligne suivante
 
 
-        # Traits colorés
-        # Traits colorés (du bas vers le haut)
+        # Colored lines (drawn from bottom to top)
         current_y = h - 2
         for largeur_mm, couleur in reversed(self.config["traits"]):
             hauteur_trait_px = int(largeur_mm *1.2)
             draw.rectangle([0, current_y - hauteur_trait_px, w, current_y], fill=couleur)
             current_y -= hauteur_trait_px + 2.3
 
-        # Bordure
+        # Border
         if dims["show_borders"]:
             draw.rectangle([0, 0, w-1, h-1], outline="black", width=1)
 
-        # Affichage dans l'aperçu
+        # Show in preview
         self.badge_image = ImageTk.PhotoImage(img)
-        #self.preview_label.config(image=self.badge_image, text="")
+       
 
 
     def toggle_style(self, ligne, style_idx, force=None):
@@ -343,7 +327,7 @@ class ModeVisuelWindow:
         color = colorchooser.askcolor()[1]
         if color:
             self.trait_entries[i][1].configure(bg=color)
-            #self.trait_colors[i].set(color)  # 👈 mise à jour ici
+            
 
 
     def browse_logo(self):

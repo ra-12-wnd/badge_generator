@@ -10,12 +10,12 @@ from organisation.mode_visuel import ModeVisuelWindow
 class BadgeApp:
     def __init__(self, root, config):
         self.root = root
-        
+        # Start from a fresh copy of the default configuration
         self.config = copy.deepcopy(default_config)
-
+        # Window setup
         self.root.title("Générateur de Badges - RAWND")
         self.root.geometry("940x580")
-        # Empêcher un redimensionnement excessif
+        # Prevent excessive resizing
         self.root.minsize(940, 580)
         self.root.maxsize(940, 580)
 
@@ -25,7 +25,7 @@ class BadgeApp:
         self.create_widgets()
 
     def create_widgets(self):
-        # Partie supérieure : chargement fichier
+        # Top area: file picker
         top_frame = tk.Frame(self.root, bg="#d3d3d3")
         top_frame.pack(fill="x", pady=10)
 
@@ -34,15 +34,15 @@ class BadgeApp:
         self.excel_entry.pack(side="left", padx=5)
         tk.Button(top_frame, text="Parcourir", bg="#062f66", fg="white", command=self.browse_file).pack(side="left", padx=10)
 
-        # Partie centrale : paramètres à gauche + aperçu à droite
-        self.center_frame = tk.Frame(self.root, bg="#d3d3d3")  # 👈 Important
+        # Middle area: settings on the left + preview on the right
+        self.center_frame = tk.Frame(self.root, bg="#d3d3d3")  # Important container
         self.center_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
-        # Partie paramètres (mode visuel intégré)
+        # Settings panel (visual mode embedded)
         self.visuel_panel = ModeVisuelWindow(self.center_frame, self.config)
         self.visuel_panel.frame.pack(side="left", fill="y", expand=False, padx=5, pady=10)
         
-        # Partie aperçu
+        # Preview area
         self.preview_frame = tk.Frame(
             self.center_frame,
             width=550,
@@ -64,16 +64,16 @@ class BadgeApp:
         bottom_frame.pack(fill="x", pady=(5, 30))  # 👈 Réduit l'espace avant les boutons
 
 
-        # Conteneur centré pour les boutons
+        # Bottom area: global buttons
         buttons_frame = tk.Frame(bottom_frame, bg="#d3d3d3")
         buttons_frame.pack()
 
-        # Boutons côte à côte
+        # Side-by-side buttons
         tk.Button(buttons_frame, text="Réinitialiser", bg="#888888", fg="white", width=15, command=self.reset_config).pack(side="left", padx=15)
         tk.Button(buttons_frame, text="Valider & Aperçu", bg="#062f66", fg="white", width=15, command=self.generer_apercu).pack(side="left", padx=15)
         tk.Button(buttons_frame, text="Générer PDF", bg="#006600", fg="white", width=15, command=self.generer_pdf).pack(side="left", padx=15)
 
-        # === Zone de statut — juste en dessous des boutons ===
+        # === Status area — just below the buttons ===
         self.status_label = tk.Label(
             bottom_frame,
             text="",
@@ -118,7 +118,7 @@ class BadgeApp:
         self.preview_label.config(image="", text="Zone d’aperçu", fg="gray")
         self.preview_label.image = None  # optional: prevent memory leak
 
-    # browse_file et generer_pdf restent inchangés
+    # File picker dialog
 
     def browse_file(self):
         filename = filedialog.askopenfilename(title="Sélectionner un fichier Excel", filetypes=[("Fichiers Excel", "*.xlsx *.xls *.csv")])

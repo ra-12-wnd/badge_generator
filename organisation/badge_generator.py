@@ -3,7 +3,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.colors import HexColor
-from PIL import Image as PILImage
 from PIL import Image
 import io
 import pandas as pd
@@ -15,6 +14,7 @@ class BadgeGenerator:
     
     @staticmethod
     def resize_image_keep_aspect(img, max_width, max_height):
+        """Resize image while keeping aspect ratio."""
         original_width, original_height = img.size
         ratio = min(max_width / original_width, max_height / original_height)
         new_size = (int(original_width * ratio), int(original_height * ratio))
@@ -22,6 +22,7 @@ class BadgeGenerator:
 
 
     def wrap_text_pdf(self, canvas_obj, text, font_name, font_size, max_width):
+        """Split text into multiple lines if it exceeds max_width."""
         words = text.split()
         lines = []
         current_line = ""
@@ -52,15 +53,15 @@ class BadgeGenerator:
         page_w, page_h = A4
 
         try:
-            #logo_img = PILImage.open(self.config["logo_path"]).convert("RGBA")
+            
             try:
                 logo_img = Image.open(self.config["logo_path"])
 
-                # Calcul des dimensions max autorisées sur le badge
+                # Compute max allowed logo dimensions on the badge
                 logo_w_max = badge_w * 0.75
                 logo_h_max = badge_h * interne["logo_height_ratio"]
 
-                # Resize en gardant les proportions (et fix ANTIALIAS obsolète)
+                # Resize while keeping proportions (LANCZOS instead of deprecated ANTIALIAS)
                 logo_img = self.resize_image_keep_aspect(
                     logo_img, max_width=logo_w_max, max_height=logo_h_max
                 )
@@ -69,7 +70,7 @@ class BadgeGenerator:
                 logo_img.save(buffer, format="PNG")
                 logo_reader = ImageReader(buffer)
 
-                # Important : convertir taille réelle du logo (en points)
+                # Convert real logo size into PDF points (approx 1 px ≈ 0.75 pt)
                 final_logo_w_pt = logo_img.width * 0.75  # pixels → points (1 px ≈ 0.75 pt)
                 final_logo_h_pt = logo_img.height * 0.75
 
@@ -86,11 +87,11 @@ class BadgeGenerator:
         except Exception as e:
             print(f"Erreur chargement logo : {e}")
             logo_reader = None
-
+        # Compute how many badges per page (grid layout)
         cols = int((page_w - 2 * margin + spacing) // (badge_w + spacing))
         rows = int((page_h - 2 * margin + spacing) // (badge_h + spacing))
         badges_per_page = cols * rows
-
+        # Fallback mapping for PDF-compatible fonts
         pdf_font_mapping = {
             "Arial": "Helvetica",
             "Calibri": "Helvetica",
@@ -104,22 +105,20 @@ class BadgeGenerator:
             row_pos = badge_idx // cols
             x = margin + col * (badge_w + spacing)
             y = page_h - margin - (row_pos + 1) * (badge_h + spacing)
-
+            # Draw badge borders
             if dims["show_borders"]:
                 c.setStrokeColor(HexColor("#000000")) 
                 c.setLineWidth(0.5)
                 c.rect(x, y, badge_w, badge_h)
-
+            # Draw logo (centered)
             if logo_reader:
-                #logo_w = badge_w * 0.5
-                #logo_h = badge_h * interne["logo_height_ratio"]
                 logo_x = x + (badge_w - final_logo_w_pt) / 2
                 logo_y = y + badge_h - final_logo_h_pt - interne["logo_margin_top"]
                 c.drawImage(logo_reader, logo_x, logo_y, width=final_logo_w_pt, height=final_logo_h_pt, mask='auto')
 
             center_x = x + badge_w / 2
             text_y = y + badge_h / 2
-
+            # Render up to 4 lines of text
             for i in range(4):
                 texte = str(row.iloc[i]) if i < len(row) and pd.notnull(row.iloc[i]) else ""
 
@@ -134,38 +133,37 @@ class BadgeGenerator:
                         font_final = "Helvetica-Oblique"
                 c.setFont(font_final, font_size)
                 c.setFillColor(HexColor(font_color))
-                if texte.strip():  # Le texte principal n'est pas vide
+                if texte.strip():  # skip empty lines
                     wrapped_lines = self.wrap_text_pdf(c, texte, font_final, font_size, badge_w * 0.9)
 
                     for line in wrapped_lines:
                         if not line.strip():
-                            continue  # Ne rien faire pour les sous-lignes vides
+                            continue # ignore empty sub-lines
 
                         c.drawCentredString(center_x, text_y, line)
-
+                        # Draw underline if needed
                         if style_dict.get("underline"):
                             text_width = c.stringWidth(line, font_final, font_size)
-                            underline_y = text_y - font_size * 0.15  # Juste sous la ligne
+                            underline_y = text_y - font_size * 0.15  
                             c.setStrokeColor(HexColor(font_color))
                             c.setLineWidth(0.5)
                             c.line(center_x - text_width / 2, underline_y, center_x + text_width / 2, underline_y)
 
                         text_y -= font_size + 2
 
-                #text_y -= font_size +1
-
-            current_y = y  # position de départ en bas du badge
+            # Draw bottom colored lines (from bottom to top)
+            current_y = y  
 
             for largeur_mm, couleur in reversed(self.config["traits"]):  # ordre inversé pour dessiner de bas en haut
-                hauteur_pt = (largeur_mm * mm)/2.5 # conversion mm → points
+                hauteur_pt = (largeur_mm * mm)/2.5 # mm → points
                 c.setFillColor(HexColor(couleur))
                 c.rect(x, current_y, badge_w, hauteur_pt, fill=1, stroke=0)
-                current_y += (hauteur_pt + 2) # espacement entre les traits
+                current_y += (hauteur_pt + 2) 
 
-
+            # Go to new page if full
             if (index + 1) % badges_per_page == 0:
                 c.showPage()
-
+        # Finalize last page if not complete
         if len(df) % badges_per_page != 0:
             c.showPage()
 

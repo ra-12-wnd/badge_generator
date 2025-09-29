@@ -1,8 +1,6 @@
 import tkinter as tk
 from organisation.config import default_config
 from organisation.badge_app import BadgeApp
-import os
-import sys
 from organisation.utils import resource_path
 
 

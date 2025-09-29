@@ -27,6 +27,6 @@ default_config = {
         (3, "#0033B3"),
         (3, "#FF8000")
     ],
-    "logo_path": resource_path("organisation/assets/logo se 1.png"),
+    "logo_path": resource_path("organisation/assets/logo.png"),
     "text_color": "#000000"
 }
